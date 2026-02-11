@@ -164,7 +164,7 @@ ansible-galaxy collection install freeipa.ansible_freeipa
 1.4 Запускаем плэйбук  
 
 ```bash
-ansible-playbook -i your_inventory_file deploy_lab_ipa.yml
+ansible-playbook -i inventory deploy_lab_ipa.yml
 ```
 
 Примечания:
