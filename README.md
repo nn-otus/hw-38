@@ -71,9 +71,9 @@ Debian 10+ (ipaclient only, no server or replica!)
 <details>
 
 <summary>
-ipa-srv.otus-lab.ru ansible_host=192.168.50.100
-ipa-cln1.otus-lab.ru ansible_host=192.168.50.101
-ipa-cln2.otus-lab.ru ansible_host=192.168.50.102
+ipa-srv.otus-lab.ru ansible_host=192.168.50.100  
+ipa-cln1.otus-lab.ru ansible_host=192.168.50.101  
+ipa-cln2.otus-lab.ru ansible_host=192.168.50.102  
 
 </summary>
 
