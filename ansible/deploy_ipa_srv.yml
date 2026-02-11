@@ -1,0 +1,74 @@
+---
+- name: Установка FreeIPA Server на Alma Linux 9.6
+  hosts: ipaserver
+  become: true
+
+  vars:
+    ipa_fqdn: "ipa-srv.otus-lab.ru"
+    ipaadmin_password: "OtusPassword123!"
+    ipadm_password: "OtusPassword123!"
+    ipaserver_domain: "otus-lab.ru"
+    ipaserver_realm: "OTUS-LAB.RU"
+    ipaserver_setup_dns: yes
+    ipaserver_forwarders: ["8.8.8.8"]
+    # Автоматически открыть порты в firewalld
+    ipaserver_setup_firewalld: yes
+    # Игнорировать наличие внешнего DNS и перезаписать зону
+    ipaserver_allow_zone_overlap: yes
+
+  pre_tasks:
+    - name: Установка корректного Hostname
+      hostname:
+        name: "{{ ipa_fqdn }}"
+
+    - name: Обновление кэша DNF и установка базовых зависимостей
+      dnf:
+        name:
+          - python3-dnf
+          - python3-netaddr  # Часто нужен для роли freeipa
+        state: present
+        update_cache: yes
+
+
+#    - name: Включение модуля IDM # Для Alma Linux 9 не требуется
+#      dnf:
+#        name: "@idm:DL1"
+#        state: present
+
+  roles:
+    - role: freeipa.ansible_freeipa.ipaserver
+      state: present
+
+  tasks:
+    - name: Create test group "devs"
+      freeipa.ansible_freeipa.ipagroup:
+        ipaadmin_password: "{{ ipaadmin_password }}"
+        name: devs
+        description: "developers"
+
+    - name: Create test user "user1"
+      freeipa.ansible_freeipa.ipauser:
+        ipaadmin_password: "{{ ipaadmin_password }}"
+        name: user1
+        first: Ivan
+        last: Ivanov
+        password: "UserPassword123!"
+        state: present
+
+    - name: Ensure user1 is in group "devs"
+      freeipa.ansible_freeipa.ipagroup:
+        ipaadmin_password: "{{ ipaadmin_password }}"
+        name: devs
+        user: 
+          - user1
+        state: present
+
+#    - name: Create test user "user2"
+#      freeipa.ansible_freeipa.ipauser:
+#        ipaadmin_password: "{{ ipaadmin_password }}"
+#        name: user2
+#        first: Petr
+#        last: Petrov
+#        password: "Password123!"
+#        update_password: on_force_change
+#        groups: devs

@@ -1,0 +1,18 @@
+[ipaserver]
+ipa-srv.otus-lab.ru ansible_host=192.168.50.100
+
+[ipaserver:vars]
+ipaserver_domain=otus-lab.ru
+ipaserver_realm=OTUS-LAB.RU
+# Пароли администратора и менеджера каталогов
+ipaadmin_password=OtusPassword123!
+ipadm_password=OtusPassword123!
+# Настройка DNS 
+ipaserver_setup_dns=yes
+ipaserver_no_host_dns=yes
+
+
+[ipaclients]
+ipa-cln1.otus-lab.ru ansible_host=192.168.50.101
+ipa-cln2.otus-lab.ru ansible_host=192.168.50.102
+

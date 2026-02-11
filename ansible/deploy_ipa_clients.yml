@@ -1,0 +1,52 @@
+---
+- name: Настройка клиентов FreeIPA на Ubuntu 22.04
+  hosts: ipaclients
+  become: true
+
+  vars:
+    # Параметры подключения к вашему серверу
+    ipaadmin_password: "OtusPassword123!"
+    ipaclient_domain: "otus-lab.ru"
+    ipaclient_realm: "OTUS-LAB.RU"
+    ipaclient_servers: ["ipa-srv.otus-lab.ru"]
+    
+    # Автоматическая настройка
+    ipaclient_mkhomedir: yes
+    # Позволяет вводить в домен без ручного подтверждения
+    ipaclient_force_join: yes
+
+
+  pre_tasks:
+    - name: Update apt cache to prevent 404 errors
+      apt:
+        update_cache: yes
+
+    - name: Install necessary packages for role
+      apt:
+        name: [python3-requests, python3-netaddr]
+        state: present
+
+    - name: Enable automatic home directory creation on Ubuntu
+      command: pam-auth-update --enable mkhomedir
+      # Выполняем только если папка еще не создается
+      args:
+        creates: /etc/auth-client-config/modules/mkhomedir 
+      when: ansible_distribution == 'Ubuntu'
+
+    - name: Принудительно устанавливаем DNS сервера IPA
+      lineinfile:
+        path: /etc/resolv.conf
+        line: "nameserver 192.168.50.100"
+        insertbefore: BOF
+        state: present
+
+    - name: Проверка резолва SRV записей (диагностика)
+      command: host -t SRV _kerberos._udp.otus-lab.ru
+      register: dns_check
+      failed_when: "'not found' in dns_check.stdout"
+
+
+
+  roles:
+    - role: freeipa.ansible_freeipa.ipaclient
+      state: present

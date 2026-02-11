@@ -1,0 +1,20 @@
+---
+- name: Настройка клиентов FreeIPA на Ubuntu 22.04
+  hosts: ipaclients
+  become: true
+
+  vars:
+    # Параметры подключения к серверу ipa-srv.otus-lab.ru
+    ipaadmin_password: "OtusPassword123!"
+    ipaclient_domain: "otus-lab.ru"
+    ipaclient_realm: "OTUS-LAB.RU"
+    ipaclient_servers: ["ipa-srv.otus-lab.ru"]
+
+    # Автоматическая настройка
+    ipaclient_mkhomedir: yes
+    # Позволяет вводить в домен без ручного подтверждения
+    ipaclient_force_join: yes
+
+  roles:
+    - role: freeipa.ansible_freeipa.ipaclient
+      state: present

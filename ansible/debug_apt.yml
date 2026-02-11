@@ -1,0 +1,23 @@
+---
+- name: Debug APT and Repositories
+  hosts: ipaserver
+  become: true
+  tasks:
+    - name: Check current sources.list
+      command: cat /etc/apt/sources.list
+      register: sources_list
+
+    - name: Display sources.list
+      debug:
+        msg: "{{ sources_list.stdout_lines }}"
+
+    - name: Check connectivity to Ubuntu Archive
+      uri:
+        url: http://archive.ubuntu.com
+        method: HEAD
+      register: network_check
+      ignore_errors: yes
+
+    - name: Display network check result
+      debug:
+        var: network_check
