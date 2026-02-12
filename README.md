@@ -528,4 +528,80 @@ https://ipa-srv.otus-lab.ru/
 ![Скриншот веб-панели управления](pics/03_ipa-srv2.PNG)
 
 
+1.6 Устанавливаем сертификат Let's Encrypt  
++ 1. Подготовка файлов: в каталог /etc/letsencrypt/live/otus-lab.ru/ копируем сертификаты
+
+```bash
+[root@ipa-srv ~]# mkdir -p /etc/letsencrypt/live/
+# Копируем средствами MobaXTerm
+[root@ipa-srv otus-lab.ru]# ll
+total 20
+-rw-r--r--. 1 root root  692 Jan 27 22:51 README
+-rw-r--r--. 1 root root 1302 Jan 27 22:51 cert.pem
+-rw-r--r--. 1 root root 1566 Jan 27 22:51 chain.pem
+-rw-r--r--. 1 root root 2868 Jan 27 22:51 fullchain.pem
+-rw-r--r--. 1 root root  241 Jan 27 22:51 privkey.pem
+```
+
++ 2. Импорт цепочки доверия (CA)  
+
+```bash
+[root@ipa-srv otus-lab.ru]# ipa-cacert-manage install chain.pem
+Installing CA certificate, please wait
+Verified CN=E8,O=Let's Encrypt,C=US
+CA certificate successfully installed
+The ipa-cacert-manage command was successful
+[root@ipa-srv otus-lab.ru]#
+
+# После этого обновляем локальные хранилища:
+
+```bash
+Systemwide CA database updated.
+Systemwide CA database updated.
+
+The ipa-certupdate command was successful
+[root@ipa-srv otus-lab.ru]#
+```  
+
++ 3. Установка сертификатов для сервисов  
+нужно объединить ключ и сертификат в формат PKCS12 (p12), так как ipa-server-certinstall этого требует  
+
+```bash
+# Создаем p12 контейнер (пароль можно оставить пустым)
+[root@ipa-srv otus-lab.ru]# openssl pkcs12 -export -out server.p12 -inkey privkey.pem -in cert.pem -certfile fullchain.pem
+Enter Export Password:
+Verifying - Enter Export Password:
+[root@ipa-srv otus-lab.ru]# 
+
+# Устанавливаем сертификат для Web-сервера и LDAP
+# Система запросит пароль от server.p12 и пароль администратора.
+[root@ipa-srv otus-lab.ru]# ipa-server-certinstall -w -d server.p12
+Directory Manager password:
+
+Enter private key unlock password:
+
+Please restart ipa services after installing certificate (ipactl restart)
+The ipa-server-certinstall command was successful
+```
+
++ 4. Перезапуск  
+
+```bash
+[root@ipa-srv otus-lab.ru]# ipactl restart
+Restarting Directory Service
+Restarting krb5kdc Service
+Restarting kadmin Service
+Restarting named Service
+Restarting httpd Service
+Restarting ipa-custodia Service
+Restarting pki-tomcatd Service
+Restarting ipa-otpd Service
+Restarting ipa-dnskeysyncd Service
+ipa: INFO: The ipactl command was successful
+[root@ipa-srv otus-lab.ru]#
+```
+#### После установки сертификата Let's Encrypt браузер считает подключение защищенным:
+
+![Скриншот веб-панели управления сервера IPA](pics/04_letsencrypt_installed.PNG)
+
 ## ДЗ-38 выполнено
